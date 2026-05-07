@@ -680,21 +680,36 @@ i32 Supervisor::LoadPbg3(i32 pbg3FileIdx, const char *filename)
         this->ReleasePbg3(pbg3FileIdx);
         this->pbg3Archives[pbg3FileIdx] = new Pbg3Archive();
         utils::DebugPrint("%s open ...\n", filename);
+        #ifdef __PS2__
+        scr_printf("LoadPbg3 %s...\n", filename);
+        #endif
         if (this->pbg3Archives[pbg3FileIdx]->Load(filename) != 0)
         {
+            #ifdef __PS2__
+            scr_printf("Load succeeded for %s\n", filename);
+            #endif
             std::strcpy(this->pbg3ArchiveNames[pbg3FileIdx], filename);
 
             char verPath[128];
             std::sprintf(verPath, "ver%.4x.dat", GAME_VERSION);
+            #ifdef __PS2__
+            scr_printf("FindEntry %s...\n", verPath);
+            #endif
             i32 res = this->pbg3Archives[pbg3FileIdx]->FindEntry(verPath);
             if (res < 0)
             {
+                #ifdef __PS2__
+                scr_printf("FindEntry failed for %s\n", verPath);
+                #endif
                 GameErrorContext::Fatal(&g_GameErrorContext, "error : データのバージョンが違います\n");
                 return 1;
             }
         }
         else
         {
+            #ifdef __PS2__
+            scr_printf("Load failed for %s\n", filename);
+            #endif
             GameErrorContext::Fatal(&g_GameErrorContext, TH_ERR_ANMMANAGER_SPRITE_CORRUPTED, filename);
             delete this->pbg3Archives[pbg3FileIdx];
             // Let's really make sure this is null by nulling twice. I assume
@@ -705,6 +720,9 @@ i32 Supervisor::LoadPbg3(i32 pbg3FileIdx, const char *filename)
             this->pbg3Archives[pbg3FileIdx] = NULL;
         }
     }
+#ifdef __PS2__ 
+    scr_printf("LoadPbg3 %s done\n", filename);
+#endif
     return 0;
 }
 
