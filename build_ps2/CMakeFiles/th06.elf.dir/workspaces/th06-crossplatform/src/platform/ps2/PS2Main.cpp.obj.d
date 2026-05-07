@@ -21,4 +21,5 @@ CMakeFiles/th06.elf.dir/workspaces/th06-crossplatform/src/platform/ps2/PS2Main.c
  /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/sys/_types.h \
  /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/machine/_types.h \
  /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/sys/lock.h \
- /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/sys/stdio.h
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/sys/stdio.h \
+ /usr/local/ps2dev/ps2sdk/ee/include/sio.h

@@ -79,7 +79,7 @@ add_dependencies(th06.elf generate_i18n)
 
 # --- Compile flags ---
 target_compile_options(th06.elf PRIVATE
-    -G0
+    -g
     -mno-gpopt
     -fpermissive
     -Wno-unknown-pragmas
@@ -141,4 +141,5 @@ target_link_libraries(th06.elf PRIVATE
 target_link_options(th06.elf PRIVATE
     
     -Wl,-zmax-page-size=128
+    -Wl,-Map,out.map
 )
