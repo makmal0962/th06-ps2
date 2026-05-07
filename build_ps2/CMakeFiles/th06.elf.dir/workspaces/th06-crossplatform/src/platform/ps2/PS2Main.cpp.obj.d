@@ -1,0 +1,24 @@
+CMakeFiles/th06.elf.dir/workspaces/th06-crossplatform/src/platform/ps2/PS2Main.cpp.obj: \
+ /workspaces/th06-crossplatform/src/platform/ps2/PS2Main.cpp \
+ /usr/local/ps2dev/ps2sdk/ee/include/sifrpc.h \
+ /usr/local/ps2dev/ps2sdk/common/include/sifrpc-common.h \
+ /usr/local/ps2dev/ps2sdk/common/include/sifcmd-common.h \
+ /usr/local/ps2dev/ps2sdk/common/include/tamtypes.h \
+ /usr/local/ps2dev/ps2sdk/ee/include/debug.h \
+ /usr/local/ps2dev/ee/lib/gcc/mips64r5900el-ps2-elf/15.2.0/include/stdarg.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/stdio.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/_ansi.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/newlib.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/_newlib_version.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/sys/config.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/machine/ieeefp.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/sys/features.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/sys/cdefs.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/machine/_default_types.h \
+ /usr/local/ps2dev/ee/lib/gcc/mips64r5900el-ps2-elf/15.2.0/include/stddef.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/sys/reent.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/_ansi.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/sys/_types.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/machine/_types.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/sys/lock.h \
+ /usr/local/ps2dev/ee/mips64r5900el-ps2-elf/include/sys/stdio.h

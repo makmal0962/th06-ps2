@@ -32,6 +32,9 @@ void ScreenEffect::Clear(ZunColor color)
 // Why is this not in GameWindow.cpp? Don't ask me...
 void ScreenEffect::SetViewport(ZunColor color)
 {
+#ifdef __PS2__
+    return;
+#endif
     g_Supervisor.viewport.x = 0;
     g_Supervisor.viewport.y = 0;
     g_Supervisor.viewport.width = GAME_WINDOW_WIDTH;

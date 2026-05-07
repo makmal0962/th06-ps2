@@ -194,7 +194,9 @@ AnmManager::~AnmManager()
 
 AnmManager::AnmManager()
 {
+#ifndef __PS2__
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
+#endif
 
     this->maybeLoadedSpriteCount = 0;
 
@@ -235,9 +237,13 @@ AnmManager::AnmManager()
     // Incomplete textures result in texturing being turned off, but EoSD has places where it
     // uses the texturing engine to color fragments without using the texture itself. The dummy
     // texture is necessary to ensure the texture can't be considered incomplete in these cases.
+#ifndef __PS2__
     this->CreateTextureObject();
     this->dummyTextureHandle = this->currentTextureHandle;
+#endif
+#ifndef __PS2__
     g_glFuncTable.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+#endif
 
     //    this->vertexBuffer = NULL;
     this->currentBlendMode = 0;

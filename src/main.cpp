@@ -1,5 +1,16 @@
-#include <SDL.h>
+#ifdef __PS2__
 #include <stdio.h>
+#include <sifrpc.h>
+#include <loadfile.h>
+#include <sbv_patches.h>
+static void ps2_init_stdio() {
+    SifInitRpc(0);
+    freopen("host:stdout.txt", "w", stdout);
+    freopen("host:stderr.txt", "w", stderr);
+    setvbuf(stdout, NULL, _IONBF, 0);
+}
+#endif
+#include <SDL.h>
 
 #include "AnmManager.hpp"
 #include "Chain.hpp"
@@ -21,11 +32,20 @@ void dlog(std::string msg){
     std::cout<<msg<<std::endl;
 }
 
+#ifdef __PS2__
+extern "C" int SDL_main(int argc, char *argv[])
+#else
 int main(int argc, char *argv[])
+#endif
 {
     //dlog("Starting");
     i32 renderResult = 0;
-
+#ifdef __PS2__
+    extern void init_scr();
+    extern int scr_printf(const char*, ...);
+    scr_printf("SDL_main entered\n");
+    scr_printf("GamePaths::Init...\n");
+#endif
 #ifdef __ANDROID__
     // On Android, SDL must be initialized before GamePaths::Init()
     // because SDL_AndroidGetInternalStoragePath() requires SDL_Init.
@@ -46,13 +66,13 @@ int main(int argc, char *argv[])
     // }
 
     //dlog("Load CONF File");
+#ifdef __PS2__
+    scr_printf("LoadConfig...\n");
+#endif
     if (g_Supervisor.LoadConfig(TH_CONFIG_FILE) != ZUN_SUCCESS)
     {
-#ifdef __ANDROID__
-        // On Android, config file may not exist on first run.
-        // LoadConfig sets defaults and tries to write — if write fails,
-        // continue anyway with defaults.
-        SDL_Log("LoadConfig failed (first run?), continuing with defaults");
+#ifdef __PS2__
+        scr_printf("LoadConfig FAILED, continuing\n");
 #else
         g_GameErrorContext.Flush();
         return -1;
@@ -68,12 +88,22 @@ int main(int argc, char *argv[])
 
 restart:
     //dlog("Create game window");
+#ifdef __PS2__
+    scr_printf("CreateGameWindow...\n");
+#endif
     GameWindow::CreateGameWindow();
 
     //dlog("new AnmManager");
+#ifdef __PS2__
+    scr_printf("new AnmManager...\n");
+#endif
     g_AnmManager = new AnmManager();
 
     //dlog("InitD3dRendering");
+#ifdef __PS2__
+    scr_printf("AnmManager done\n");
+    scr_printf("InitD3dRendering...\n");
+#endif
     if (GameWindow::InitD3dRendering())
     {
         g_GameErrorContext.Flush();
@@ -81,17 +111,33 @@ restart:
     }
 
     //dlog("InitializeDSound");
+#ifdef __PS2__
+    scr_printf("InitializeDSound...\n");
+#endif
     g_SoundPlayer.InitializeDSound();
     //dlog("GetJoystickCaps");
+#ifdef __PS2__
+    scr_printf("GetJoystickCaps...\n");
+#endif
     Controller::GetJoystickCaps();
     //dlog("ResetKeyboard");
+#ifdef __PS2__
+    scr_printf("ResetKeyboard...\n");
+#endif
     Controller::ResetKeyboard();
 
     //dlog("Supervisor::RegisterChain");
+#ifdef __PS2__
+    scr_printf("RegisterChain...\n");
+#endif
     if (Supervisor::RegisterChain() != ZUN_SUCCESS)
     {
         goto stop;
     }
+#ifdef __PS2__
+    scr_printf("RegisterChain done\n");
+    scr_printf("entering game loop\n");
+#endif
     if (!g_Supervisor.cfg.windowed)
     {
         SDL_ShowCursor(SDL_DISABLE);
@@ -100,6 +146,9 @@ restart:
     g_GameWindow.curFrame = 0;
 
     //dlog("Into loop game event");
+#ifdef __PS2__
+    scr_printf("Into loop game event...\n");
+#endif
     while (true)
     {
         SDL_Event e;

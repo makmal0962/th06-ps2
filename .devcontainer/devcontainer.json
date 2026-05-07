@@ -1,4 +1,19 @@
 {
-    "image": "ghcr.io/happyhavoc/th06:master",
-    "features": {}
+  "name": "PS2 Dev - th06",
+  "image": "ps2dev/ps2dev",
+  "containerEnv": {
+    "PS2DEV": "/usr/local/ps2dev",
+    "PS2SDK": "/usr/local/ps2dev/ps2sdk",
+    "PATH": "/usr/local/ps2dev/bin:/usr/local/ps2dev/ee/bin:/usr/local/ps2dev/iop/bin:/usr/local/ps2dev/dvp/bin:/usr/local/ps2dev/ps2sdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  "postCreateCommand": "apk add --no-cache cmake make python3 mpc1 mpfr4 gmp-dev && mips64r5900el-ps2-elf-gcc --version && echo 'PS2 toolchain ready!'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "twxs.cmake"
+      ]
+    }
+  }
 }

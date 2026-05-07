@@ -57,6 +57,9 @@ SoundPlayer::SoundPlayer()
 
 ZunResult SoundPlayer::InitializeDSound()
 {
+#ifdef __PS2__
+    return ZUN_SUCCESS;
+#endif
     SDL_AudioSpec desiredAudio;
     SDL_AudioSpec obtainedAudio;
 

@@ -8,6 +8,9 @@
 #include "ZunMath.hpp"
 #include "graphics/FixedFunctionGL.hpp"
 #include "graphics/WebGL.hpp"
+#ifdef __PS2__
+#include "graphics/GsKitStub.hpp"
+#endif
 #include "i18n.hpp"
 #include "utils.hpp"
 
@@ -15,6 +18,10 @@
 #include <SDL_timer.h>
 #include <cstring>
 #include <iostream>
+
+extern "C" void init_scr();
+extern "C" int scr_printf(const char*, ...);
+
 void gamewindowdlog(std::string msg){
     std::cout<<"gamewindow : "<<msg<<std::endl;
 }
@@ -31,8 +38,14 @@ static const struct
     bool isEsContext;
     void (*setContextFlags)();
     GfxInterface *(*init)();
-} s_RenderBackends[] = {{"GL(ES) 2.0 / WebGL", true, WebGL::SetContextFlags, WebGL::Create},
-                        {"Fixed function GL(ES)", false, FixedFunctionGL::SetContextFlags, FixedFunctionGL::Init}};
+} s_RenderBackends[] = {
+#ifdef __PS2__
+    {"PS2 gsKit (stub)", false, [](){}, GsKitStub::Init},
+#else
+    {"GL(ES) 2.0 / WebGL", true, WebGL::SetContextFlags, WebGL::Create},
+    {"Fixed function GL(ES)", false, FixedFunctionGL::SetContextFlags, FixedFunctionGL::Init},
+#endif
+};
 
 RenderResult GameWindow::Render()
 {
@@ -211,9 +224,25 @@ void GameWindow::Present()
 
 void GameWindow::CreateGameWindow()
 {
+#ifdef __PS2__
+    SDL_Init(SDL_INIT_VIDEO );
+#else
+    #ifdef __PS2__
+    SDL_Init(SDL_INIT_VIDEO);
+#else
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK);
+#endif
+#endif
 
+#ifdef __PS2__
+    u32 flags = 0; // No OpenGL on PS2
+#else
+    #ifdef __PS2__
+    u32 flags = 0;
+#else
     u32 flags = SDL_WINDOW_OPENGL;
+#endif
+#endif
     i32 height = g_GameWindow.GAME_WINDOW_HEIGHT_REAL;
     i32 width = g_GameWindow.GAME_WINDOW_WIDTH_REAL;
     i32 x = SDL_WINDOWPOS_UNDEFINED;
@@ -225,21 +254,21 @@ void GameWindow::CreateGameWindow()
     #ifdef __ANDROID__
     SDL_DisplayMode mode;
     if (SDL_GetCurrentDisplayMode(0, &mode) == 0) {
-        SDL_Log("format: %u\n", mode.format);
-        SDL_Log("w: %d\n", mode.w);
-        SDL_Log("h: %d\n", mode.h);
-        SDL_Log("refresh_rate: %d\n", mode.refresh_rate);
+        // // SDL_Log("format: %u\n", mode.format);
+        // // SDL_Log("w: %d\n", mode.w);
+        // // SDL_Log("h: %d\n", mode.h);
+        // // SDL_Log("refresh_rate: %d\n", mode.refresh_rate);
         width = mode.w;
         height = mode.h;
         g_GameWindow.GAME_WINDOW_WIDTH_REAL = width;
         g_GameWindow.GAME_WINDOW_HEIGHT_REAL = height;
     }
     #endif
-    SDL_Log("WIDTH %d",width);
-    SDL_Log("HEIGHT %d",height);
+    // // SDL_Log("WIDTH %d",width);
+    // // SDL_Log("HEIGHT %d",height);
     g_GameWindow.CONFIGURE_VIEW();
-    SDL_Log("VIEWPORT WIDTH %d",g_GameWindow.VIEWPORT_WIDTH);
-    SDL_Log("VIEWPORT HEIGHT %d",g_GameWindow.VIEWPORT_HEIGHT);
+    // // SDL_Log("VIEWPORT WIDTH %d",g_GameWindow.VIEWPORT_WIDTH);
+    // // SDL_Log("VIEWPORT HEIGHT %d",g_GameWindow.VIEWPORT_HEIGHT);
     if (g_Supervisor.cfg.windowed == 0)
     {
         flags |= SDL_WINDOW_FULLSCREEN;
@@ -248,13 +277,20 @@ void GameWindow::CreateGameWindow()
     {
         s_RenderBackends[i].setContextFlags();
 
+#ifdef __PS2__
+    scr_printf("SDL_Init done\n");
+    scr_printf("SDL_CreateWindow...\n");
+#endif
         g_GameWindow.window = SDL_CreateWindow(TH_WINDOW_TITLE, x, y, width, height, flags);
+#ifdef __PS2__
+        scr_printf("window=%p\n", g_GameWindow.window);
+#endif
 
         if (g_GameWindow.window == NULL)
         {
             goto fail;
         }
-
+#ifndef __PS2__
         g_GameWindow.glContext = SDL_GL_CreateContext(g_GameWindow.window);
 
         if (g_GameWindow.glContext == NULL)
@@ -266,7 +302,7 @@ void GameWindow::CreateGameWindow()
         {
             goto fail;
         }
-
+#endif
         utils::DebugPrint2("Using renderer backend %s", s_RenderBackends[i].name);
         g_glFuncTable.ResolveFunctions(s_RenderBackends[i].isEsContext);
         g_GameWindow.renderBackendIndex = i;
@@ -355,7 +391,9 @@ i32 GameWindow::InitD3dRendering(void)
     f32 field_of_view_y;
     f32 camera_distance;
 
+    scr_printf("gfxBackend init...\n");
     g_AnmManager->gfxBackend = s_RenderBackends[g_GameWindow.renderBackendIndex].init();
+    scr_printf("gfxBackend done\n");
 
     //    using_d3d_hal = 1;
     //    std::memset(&present_params, 0, sizeof(D3DPRESENT_PARAMETERS));
@@ -403,7 +441,9 @@ i32 GameWindow::InitD3dRendering(void)
             //            GameErrorContext::Log(&g_GameErrorContext, TH_ERR_SET_REFRESH_RATE_60HZ);
         }
 
-        SDL_GL_SetSwapInterval(1);
+        #ifndef __PS2__
+    SDL_GL_SetSwapInterval(1);
+#endif
 
         //        if (g_Supervisor.cfg.frameskipConfig == 0)
         //        {
@@ -426,7 +466,9 @@ i32 GameWindow::InitD3dRendering(void)
     //    present_params.AutoDepthStencilFormat = D3DFMT_D16;
     //    present_params.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
 
+    #ifndef __PS2__
     SDL_GL_SetSwapInterval(1);
+#endif
     g_Supervisor.vsyncEnabled = 1;
 
     g_Supervisor.lockableBackbuffer = 1;
@@ -535,7 +577,9 @@ i32 GameWindow::InitD3dRendering(void)
     //    D3DXMatrixPerspectiveFovLH(&g_Supervisor.projectionMatrix, field_of_view_y, aspect_ratio, 100.0, 10000.0);
     //    g_Supervisor.d3dDevice->SetTransform(D3DTS_VIEW, &g_Supervisor.viewMatrix);
     //    g_Supervisor.d3dDevice->SetTransform(D3DTS_PROJECTION, &g_Supervisor.projectionMatrix);
+    scr_printf("viewport.Get...\n");
     g_Supervisor.viewport.Get();
+    scr_printf("viewport done\n");
 
     //    g_Supervisor.d3dDevice->GetDeviceCaps(&g_Supervisor.d3dCaps);
     //    if (((((g_Supervisor.cfg.opts >> GCOS_USE_D3D_HW_TEXTURE_BLENDING) & 1) == 0) &&
@@ -564,7 +608,9 @@ i32 GameWindow::InitD3dRendering(void)
     //            GameErrorContext::Log(&g_GameErrorContext, TH_ERR_D3DFMT_A8R8G8B8_UNSUPPORTED);
     //        }
     //    }
+    scr_printf("InitD3dDevice...\n");
     InitD3dDevice();
+    scr_printf("InitD3dDevice done\n");
     ScreenEffect::SetViewport(0);
     g_GameWindow.isAppClosing = 0;
     g_Supervisor.lastFrameTime = 0;
@@ -574,6 +620,9 @@ i32 GameWindow::InitD3dRendering(void)
 
 void GameWindow::InitD3dDevice(void)
 {
+#ifdef __PS2__
+    return;
+#endif
     AnmManager *anm1;
     AnmManager *anm2;
     AnmManager *anm3;

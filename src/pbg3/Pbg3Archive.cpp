@@ -4,6 +4,12 @@
 
 #include "pbg3/Pbg3Archive.hpp"
 
+#ifdef __PS2__
+extern "C" void scr_clear();
+extern "C" int scr_printf(const char*, ...);
+#endif
+
+
 Pbg3Archive **g_Pbg3Archives;
 
 Pbg3Archive::Pbg3Archive()
@@ -17,7 +23,17 @@ Pbg3Archive::Pbg3Archive()
 
 i32 Pbg3Archive::ParseHeader()
 {
-    if (this->parser->ReadMagic() != 0x33474250)
+#ifdef __PS2__
+    scr_printf("ParseHeader start\n");
+#endif
+#ifdef __PS2__
+    scr_printf("ReadMagic...\n");
+#endif
+    u32 magic = this->parser->ReadMagic();
+#ifdef __PS2__
+    scr_printf("magic=0x%x\n", magic);
+#endif
+    if (magic != 0x33474250)
     {
         if (this->parser != NULL)
         {
@@ -27,8 +43,21 @@ i32 Pbg3Archive::ParseHeader()
         return false;
     }
 
+#ifdef __PS2__
+    scr_printf("ReadVarInt entries...\n");
+#endif
     this->numOfEntries = this->parser->ReadVarInt();
+#ifdef __PS2__
+    scr_printf("entries=%d\n", this->numOfEntries);
+    scr_printf("ReadVarInt offset...\n");
+#endif
     this->fileTableOffset = this->parser->ReadVarInt();
+#ifdef __PS2__
+    scr_printf("offset=%d\n", this->fileTableOffset);
+#endif
+#ifdef __PS2__
+    scr_printf("SeekToOffset %d...\n", this->fileTableOffset);
+#endif
     if (!this->parser->SeekToOffset(this->fileTableOffset))
     {
         if (this->parser != NULL)
@@ -38,7 +67,9 @@ i32 Pbg3Archive::ParseHeader()
         }
         return false;
     }
-
+#ifdef __PS2__
+    scr_printf("Allocating entries...\n");
+#endif
     this->entries = new Pbg3Entry[this->numOfEntries];
     if (this->entries == NULL)
     {
@@ -50,6 +81,9 @@ i32 Pbg3Archive::ParseHeader()
         return false;
     }
 
+#ifdef __PS2__
+    scr_printf("Reading entries...\n");
+#endif
     for (u32 idx = 0; idx < this->numOfEntries; idx += 1)
     {
         this->entries[idx].unk2 = this->parser->ReadVarInt();
@@ -69,11 +103,15 @@ i32 Pbg3Archive::ParseHeader()
                 delete[] this->entries;
                 this->entries = NULL;
             }
-
+#ifdef __PS2__
+            scr_printf("Failed to read entry filename\n");
+#endif
             return false;
         }
     }
-
+#ifdef __PS2__
+    scr_printf("ParseHeader end\n");
+#endif
     return true;
 }
 

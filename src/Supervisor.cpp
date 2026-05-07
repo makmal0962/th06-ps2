@@ -1,4 +1,8 @@
 #include "Supervisor.hpp"
+#ifdef __PS2__
+extern "C" void scr_clear();
+extern "C" int scr_printf(const char*, ...);
+#endif
 #include "AnmManager.hpp"
 #include "AsciiManager.hpp"
 #include "Chain.hpp"
@@ -49,6 +53,10 @@ u16 g_NumOfFramesInputsWereHeld;
 
 ChainCallbackResult Supervisor::OnUpdate(Supervisor *s)
 {
+#ifdef __PS2__
+    scr_clear();
+    scr_printf("OnUpdate state=%d\n", s->curState);
+#endif
 
     //    if (g_SoundPlayer.backgroundMusic != NULL)
     //    {
@@ -274,6 +282,9 @@ ChainCallbackResult Supervisor::OnDraw(Supervisor *s)
 
 ZunResult Supervisor::RegisterChain()
 {
+#ifdef __PS2__
+    scr_printf("RegisterChain start\n");
+#endif
     //supervisordlog("trying to register chain");
     ChainElem *chain;
     Supervisor *supervisor = &g_Supervisor;
@@ -283,6 +294,9 @@ ZunResult Supervisor::RegisterChain()
     supervisor->calcCount = 0;
 
     //supervisordlog("Supervisor::OnUpdate");
+#ifdef __PS2__
+    scr_printf("CreateElem OnUpdate...\n");
+#endif
     chain = g_Chain.CreateElem((ChainCallback)Supervisor::OnUpdate);
     chain->arg = supervisor;
     //supervisordlog("Supervisor::AddedCallback");
@@ -296,18 +310,25 @@ ZunResult Supervisor::RegisterChain()
         return ZUN_ERROR;
     }
 
+#ifdef __PS2__
+    scr_printf("CreateElem OnDraw...\n");
+#endif
     //supervisordlog("g_Chain.CreateElem");
     chain = g_Chain.CreateElem((ChainCallback)Supervisor::OnDraw);
     chain->arg = supervisor;
     //supervisordlog("g_Chain.AddToDrawChain");
     g_Chain.AddToDrawChain(chain, TH_CHAIN_PRIO_DRAW_SUPERVISOR);
     //supervisordlog("finish");
+#ifdef __PS2__
+    scr_printf("RegisterChain end\n");
+#endif
     return ZUN_SUCCESS;
 }
 
 ZunResult Supervisor::AddedCallback(Supervisor *s)
 {
     //supervisordlog("callback init");
+
     i32 i;
 
     //supervisordlog("for pbg3Archives");
@@ -317,15 +338,25 @@ ZunResult Supervisor::AddedCallback(Supervisor *s)
     }
 
     //supervisordlog("set g_Pbg3Archives");
+#ifdef __PS2__
+    scr_printf("Set g_Pbg3Archives...\n");
+#endif
     g_Pbg3Archives = s->pbg3Archives;
     //supervisordlog("LoadPbg3");
+#ifdef __PS2__
+    scr_printf("LoadPbg3...\n");
+#endif
     if (s->LoadPbg3(IN_PBG3_INDEX, TH_IN_DAT_FILE))
     {
+#ifdef __PS2__
+        scr_printf("Failed to load Pbg3 archive\n");
+#endif
         return ZUN_ERROR;
     }
 
     // D3DX code swaps twice to copy to both buffers
 
+#ifndef __PS2__
     //supervisordlog("LoadSurface data/title/th06logo.jpg");
     g_AnmManager->LoadSurface(0, "data/title/th06logo.jpg");
     //supervisordlog("CopySurfaceToBackBuffer");
@@ -348,6 +379,8 @@ ZunResult Supervisor::AddedCallback(Supervisor *s)
 
     //supervisordlog("ReleaseSurface");
     g_AnmManager->ReleaseSurface(0);
+
+#endif
 
     //supervisordlog("set startupTimeBeforeMenuMusic");
     s->startupTimeBeforeMenuMusic = SDL_GetTicks();

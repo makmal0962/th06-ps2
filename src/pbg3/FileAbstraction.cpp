@@ -1,6 +1,10 @@
 #include "pbg3/FileAbstraction.hpp"
 #include "FileSystem.hpp"
 
+ #ifdef __PS2__
+extern "C" int scr_printf(const char*, ...);
+#endif
+
 FileAbstraction::FileAbstraction()
 {
     handle = NULL;
@@ -42,10 +46,11 @@ i32 FileAbstraction::Open(const char *filename, const char *mode)
     }
 
     this->handle = FileSystem::FopenUTF8(filename, openMode);
-
+#ifdef __PS2__
+    scr_printf("handle=%p\n", this->handle);
+#endif
     if (this->handle == NULL)
         return 0;
-
     return 1;
 }
 

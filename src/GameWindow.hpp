@@ -63,6 +63,9 @@ struct GameWindow
 
     SDL_Window *window;
     SDL_GLContext glContext;
+    #ifdef __PS2__
+        void *ps2GsGlobal; // GSGLOBAL*, void* untuk hindari include gsKit di header
+    #endif
     i32 isAppClosing;
     i32 lastActiveAppValue;
     i32 isAppActive;

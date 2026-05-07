@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.20)
+project(th06_ps2 CXX C)
+set(TH06_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/..)
+cmake_path(NORMAL_PATH TH06_ROOT OUTPUT_VARIABLE TH06_ROOT)
+include(${TH06_ROOT}/CMakeLists_PS2.cmake)
