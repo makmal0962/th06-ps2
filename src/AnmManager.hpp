@@ -196,6 +196,22 @@ struct AnmManager
             this->UpdateDirtyStates();
         }
 
+#ifdef __PS2__
+        static bool s_printed = false;
+        if (!s_printed) {
+            s_printed = true;
+            // print first vertex position
+            float* vp = (float*)this->attribArrays[0].ptr;
+            if (vp) printf("vtx0: %.2f %.2f %.2f\n", vp[0], vp[1], vp[2]);
+            // print modelview matrix
+            float mv[16], proj[16];
+            g_glFuncTable.glGetFloatv(GL_MODELVIEW_MATRIX, mv);
+            g_glFuncTable.glGetFloatv(GL_PROJECTION_MATRIX, proj);
+            printf("MV[12-15]: %.2f %.2f %.2f %.2f\n", mv[12],mv[13],mv[14],mv[15]);
+            printf("PROJ[10-15]: %.2f %.2f %.2f %.2f\n", proj[10],proj[11],proj[14],proj[15]);
+            if (vp) printf("vtx stride: %zu\n", this->attribArrays[0].stride);
+        }
+#endif
         g_glFuncTable.glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 

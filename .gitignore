@@ -26,3 +26,6 @@ config_*
 
 android/startDebug.bat
 src_bak
+
+build_ps2
+library_repo

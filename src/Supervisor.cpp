@@ -1,7 +1,6 @@
 #include "Supervisor.hpp"
 #ifdef __PS2__
-extern "C" void scr_clear();
-extern "C" int scr_printf(const char*, ...);
+extern "C" int printf(const char*, ...);
 #endif
 #include "AnmManager.hpp"
 #include "AsciiManager.hpp"
@@ -54,8 +53,7 @@ u16 g_NumOfFramesInputsWereHeld;
 ChainCallbackResult Supervisor::OnUpdate(Supervisor *s)
 {
 #ifdef __PS2__
-    scr_clear();
-    scr_printf("OnUpdate state=%d\n", s->curState);
+    printf("OnUpdate state=%d\n", s->curState);
 #endif
 
     //    if (g_SoundPlayer.backgroundMusic != NULL)
@@ -282,9 +280,6 @@ ChainCallbackResult Supervisor::OnDraw(Supervisor *s)
 
 ZunResult Supervisor::RegisterChain()
 {
-#ifdef __PS2__
-    scr_printf("RegisterChain start\n");
-#endif
     //supervisordlog("trying to register chain");
     ChainElem *chain;
     Supervisor *supervisor = &g_Supervisor;
@@ -294,9 +289,6 @@ ZunResult Supervisor::RegisterChain()
     supervisor->calcCount = 0;
 
     //supervisordlog("Supervisor::OnUpdate");
-#ifdef __PS2__
-    scr_printf("CreateElem OnUpdate...\n");
-#endif
     chain = g_Chain.CreateElem((ChainCallback)Supervisor::OnUpdate);
     chain->arg = supervisor;
     //supervisordlog("Supervisor::AddedCallback");
@@ -310,18 +302,12 @@ ZunResult Supervisor::RegisterChain()
         return ZUN_ERROR;
     }
 
-#ifdef __PS2__
-    scr_printf("CreateElem OnDraw...\n");
-#endif
     //supervisordlog("g_Chain.CreateElem");
     chain = g_Chain.CreateElem((ChainCallback)Supervisor::OnDraw);
     chain->arg = supervisor;
     //supervisordlog("g_Chain.AddToDrawChain");
     g_Chain.AddToDrawChain(chain, TH_CHAIN_PRIO_DRAW_SUPERVISOR);
     //supervisordlog("finish");
-#ifdef __PS2__
-    scr_printf("RegisterChain end\n");
-#endif
     return ZUN_SUCCESS;
 }
 
@@ -338,19 +324,10 @@ ZunResult Supervisor::AddedCallback(Supervisor *s)
     }
 
     //supervisordlog("set g_Pbg3Archives");
-#ifdef __PS2__
-    scr_printf("Set g_Pbg3Archives...\n");
-#endif
     g_Pbg3Archives = s->pbg3Archives;
     //supervisordlog("LoadPbg3");
-#ifdef __PS2__
-    scr_printf("LoadPbg3...\n");
-#endif
     if (s->LoadPbg3(IN_PBG3_INDEX, TH_IN_DAT_FILE))
     {
-#ifdef __PS2__
-        scr_printf("Failed to load Pbg3 archive\n");
-#endif
         return ZUN_ERROR;
     }
 
@@ -388,13 +365,16 @@ ZunResult Supervisor::AddedCallback(Supervisor *s)
     Supervisor::SetupDInput(s);
 
     //supervisordlog("new MidiOutput");
+
     s->midiOutput = new MidiOutput();
 
     // Replacing a seeding method that used win32 timeGetTime
     //supervisordlog("g_Rng.Initialize");
+
     g_Rng.Initialize((u16)std::time(NULL));
 
     //supervisordlog("g_SoundPlayer.InitSoundBuffers");
+
     g_SoundPlayer.InitSoundBuffers();
     //supervisordlog("g_AnmManager->LoadAnm");
     if (g_AnmManager->LoadAnm(ANM_FILE_TEXT, "data/text.anm", ANM_OFFSET_TEXT) != 0)
@@ -411,6 +391,9 @@ ZunResult Supervisor::AddedCallback(Supervisor *s)
 
     s->unk198 = 0;
     //supervisordlog("g_AnmManager->SetupVertexBuffer");
+#ifdef __PS2__
+    printf("g_AnmManager->SetupVertexBuffer...\n");
+#endif
     g_AnmManager->SetupVertexBuffer();
 
     //supervisordlog("TextHelper::CreateTextBuffer");
@@ -680,26 +663,17 @@ i32 Supervisor::LoadPbg3(i32 pbg3FileIdx, const char *filename)
         this->ReleasePbg3(pbg3FileIdx);
         this->pbg3Archives[pbg3FileIdx] = new Pbg3Archive();
         utils::DebugPrint("%s open ...\n", filename);
-        #ifdef __PS2__
-        scr_printf("LoadPbg3 %s...\n", filename);
-        #endif
         if (this->pbg3Archives[pbg3FileIdx]->Load(filename) != 0)
         {
-            #ifdef __PS2__
-            scr_printf("Load succeeded for %s\n", filename);
-            #endif
             std::strcpy(this->pbg3ArchiveNames[pbg3FileIdx], filename);
 
             char verPath[128];
             std::sprintf(verPath, "ver%.4x.dat", GAME_VERSION);
-            #ifdef __PS2__
-            scr_printf("FindEntry %s...\n", verPath);
-            #endif
             i32 res = this->pbg3Archives[pbg3FileIdx]->FindEntry(verPath);
             if (res < 0)
             {
                 #ifdef __PS2__
-                scr_printf("FindEntry failed for %s\n", verPath);
+                printf("FindEntry failed for %s\n", verPath);
                 #endif
                 GameErrorContext::Fatal(&g_GameErrorContext, "error : データのバージョンが違います\n");
                 return 1;
@@ -708,7 +682,7 @@ i32 Supervisor::LoadPbg3(i32 pbg3FileIdx, const char *filename)
         else
         {
             #ifdef __PS2__
-            scr_printf("Load failed for %s\n", filename);
+            printf("Load failed for %s\n", filename);
             #endif
             GameErrorContext::Fatal(&g_GameErrorContext, TH_ERR_ANMMANAGER_SPRITE_CORRUPTED, filename);
             delete this->pbg3Archives[pbg3FileIdx];
@@ -721,7 +695,7 @@ i32 Supervisor::LoadPbg3(i32 pbg3FileIdx, const char *filename)
         }
     }
 #ifdef __PS2__ 
-    scr_printf("LoadPbg3 %s done\n", filename);
+    printf("LoadPbg3 %s done\n", filename);
 #endif
     return 0;
 }

@@ -7,6 +7,11 @@
 #include "i18n.hpp"
 #include "utils.hpp"
 
+#ifdef DEBUG
+#ifdef __PS2__
+extern "C" int printf(const char*, ...);
+#endif
+#endif
 namespace utils
 {
 void DebugPrint(const char *fmt, ...)
@@ -19,7 +24,11 @@ void DebugPrint(const char *fmt, ...)
     std::vsnprintf(tmpBuffer, 511, fmt, args);
     va_end(args);
 
-    std::printf("DEBUG2: %s\n", tmpBuffer);
+#ifdef __PS2__
+    printf("DEBUG: %s\n", tmpBuffer);
+#else
+    std::printf("DEBUG: %s\n", tmpBuffer);
+#endif
 #endif
 }
 
@@ -65,7 +74,11 @@ void DebugPrint2(const char *fmt, ...)
     std::vsnprintf(tmpBuffer, 511, fmt, args);
     va_end(args);
 
+#ifdef __PS2__
+    printf("DEBUG2: %s\n", tmpBuffer);
+#else
     std::printf("DEBUG2: %s\n", tmpBuffer);
+#endif
 #endif
 }
 }; // namespace utils

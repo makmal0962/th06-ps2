@@ -92,3 +92,8 @@ struct GLFuncTable
 };
 
 extern GLFuncTable g_glFuncTable;
+
+// #ifdef __PS2__
+// // No-op all GL calls on PS2
+// #define g_glFuncTable (*((GLFuncTable*)nullptr))
+// #endif

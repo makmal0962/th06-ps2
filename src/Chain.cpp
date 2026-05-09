@@ -3,7 +3,7 @@
 
 #include <new>
 #ifdef __PS2__
-extern "C" int scr_printf(const char*, ...);
+extern "C" int printf(const char*, ...);
 #endif
 #include <iostream>
 void chaindlog(std::string msg){
@@ -303,14 +303,8 @@ void Chain::Release(void)
 
 ChainElem *Chain::CreateElem(ChainCallback callback)
 {
-#ifdef __PS2__
-    scr_printf("new ChainElem...\n");
-#endif
     ChainElem *elem;
     elem = new ChainElem();
-#ifdef __PS2__
-    scr_printf("new ChainElem done %p\n", elem);
-#endif
 
     elem->callback = callback;
     elem->addedCallback = NULL;

@@ -5,6 +5,9 @@
 
 void FixedFunctionGL::SetContextFlags()
 {
+#ifdef __PS2__
+    return;
+#endif
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
@@ -12,6 +15,10 @@ void FixedFunctionGL::SetContextFlags()
 
 GfxInterface *FixedFunctionGL::Init()
 {
+#ifdef __PS2__
+    static FixedFunctionGL s_instance;
+    return &s_instance;
+#endif
     g_glFuncTable.glEnable(GL_TEXTURE_2D);
     g_glFuncTable.glEnableClientState(GL_VERTEX_ARRAY);
 

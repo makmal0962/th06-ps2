@@ -3,6 +3,7 @@
 #include <sifrpc.h>
 #include <loadfile.h>
 #include <sbv_patches.h>
+#include "platform/ps2/PS2Platform.hpp"
 static void ps2_init_stdio() {
     SifInitRpc(0);
     freopen("host:stdout.txt", "w", stdout);
@@ -42,9 +43,9 @@ int main(int argc, char *argv[])
     i32 renderResult = 0;
 #ifdef __PS2__
     extern void init_scr();
-    extern int scr_printf(const char*, ...);
-    scr_printf("SDL_main entered\n");
-    scr_printf("GamePaths::Init...\n");
+    extern int printf(const char*, ...);
+    printf("SDL_main entered\n");
+    printf("GamePaths::Init...\n");
 #endif
 #ifdef __ANDROID__
     // On Android, SDL must be initialized before GamePaths::Init()
@@ -67,12 +68,12 @@ int main(int argc, char *argv[])
 
     //dlog("Load CONF File");
 #ifdef __PS2__
-    scr_printf("LoadConfig...\n");
+    printf("LoadConfig...\n");
 #endif
     if (g_Supervisor.LoadConfig(TH_CONFIG_FILE) != ZUN_SUCCESS)
     {
 #ifdef __PS2__
-        scr_printf("LoadConfig FAILED, continuing\n");
+        printf("LoadConfig FAILED, continuing\n");
 #else
         g_GameErrorContext.Flush();
         return -1;
@@ -89,20 +90,21 @@ int main(int argc, char *argv[])
 restart:
     //dlog("Create game window");
 #ifdef __PS2__
-    scr_printf("CreateGameWindow...\n");
+    printf("CreateGameWindow...\n");
+    // PS2Platform::Init();
 #endif
     GameWindow::CreateGameWindow();
 
     //dlog("new AnmManager");
 #ifdef __PS2__
-    scr_printf("new AnmManager...\n");
+    printf("new AnmManager...\n");
 #endif
     g_AnmManager = new AnmManager();
 
     //dlog("InitD3dRendering");
 #ifdef __PS2__
-    scr_printf("AnmManager done\n");
-    scr_printf("InitD3dRendering...\n");
+    printf("AnmManager done\n");
+    printf("InitD3dRendering...\n");
 #endif
     if (GameWindow::InitD3dRendering())
     {
@@ -112,31 +114,31 @@ restart:
 
     //dlog("InitializeDSound");
 #ifdef __PS2__
-    scr_printf("InitializeDSound...\n");
+    printf("InitializeDSound...\n");
 #endif
     g_SoundPlayer.InitializeDSound();
     //dlog("GetJoystickCaps");
 #ifdef __PS2__
-    scr_printf("GetJoystickCaps...\n");
+    printf("GetJoystickCaps...\n");
 #endif
     Controller::GetJoystickCaps();
     //dlog("ResetKeyboard");
 #ifdef __PS2__
-    scr_printf("ResetKeyboard...\n");
+    printf("ResetKeyboard...\n");
 #endif
     Controller::ResetKeyboard();
 
     //dlog("Supervisor::RegisterChain");
 #ifdef __PS2__
-    scr_printf("RegisterChain...\n");
+    printf("RegisterChain...\n");
 #endif
     if (Supervisor::RegisterChain() != ZUN_SUCCESS)
     {
         goto stop;
     }
 #ifdef __PS2__
-    scr_printf("RegisterChain done\n");
-    scr_printf("entering game loop\n");
+    printf("RegisterChain done\n");
+    printf("entering game loop\n");
 #endif
     if (!g_Supervisor.cfg.windowed)
     {
@@ -147,7 +149,7 @@ restart:
 
     //dlog("Into loop game event");
 #ifdef __PS2__
-    scr_printf("Into loop game event...\n");
+    printf("Into loop game event...\n");
 #endif
     while (true)
     {

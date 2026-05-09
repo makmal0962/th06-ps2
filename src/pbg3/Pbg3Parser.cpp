@@ -1,8 +1,7 @@
 #include "pbg3/Pbg3Parser.hpp"
 
 #ifdef __PS2__
-extern "C" void scr_clear();
-extern "C" int scr_printf(const char*, ...);
+extern "C" int printf(const char*, ...);
 #endif
 
 Pbg3Parser::Pbg3Parser() : IPbg3Parser(), FileAbstraction()
@@ -12,21 +11,14 @@ Pbg3Parser::Pbg3Parser() : IPbg3Parser(), FileAbstraction()
 i32 Pbg3Parser::OpenArchive(const char *path)
 {
 #ifdef __PS2__
-    scr_clear();
-    scr_printf("OpenArchive: %s\n", path);
+    printf("OpenArchive: %s\n", path);
 #endif
     this->Close();
     this->Reset();
     if (!FileAbstraction::Open(path, "r"))
     {
-#ifdef __PS2__
-        scr_printf("OpenArchive FAILED\n");
-#endif
         return false;
     }
-#ifdef __PS2__
-    scr_printf("OpenArchive OK, size=%d\n", GetSize());
-#endif
     this->fileSize = GetSize();
     return true;
 }

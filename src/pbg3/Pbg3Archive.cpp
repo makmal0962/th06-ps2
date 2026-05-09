@@ -5,8 +5,7 @@
 #include "pbg3/Pbg3Archive.hpp"
 
 #ifdef __PS2__
-extern "C" void scr_clear();
-extern "C" int scr_printf(const char*, ...);
+extern "C" int printf(const char*, ...);
 #endif
 
 
@@ -23,16 +22,7 @@ Pbg3Archive::Pbg3Archive()
 
 i32 Pbg3Archive::ParseHeader()
 {
-#ifdef __PS2__
-    scr_printf("ParseHeader start\n");
-#endif
-#ifdef __PS2__
-    scr_printf("ReadMagic...\n");
-#endif
     u32 magic = this->parser->ReadMagic();
-#ifdef __PS2__
-    scr_printf("magic=0x%x\n", magic);
-#endif
     if (magic != 0x33474250)
     {
         if (this->parser != NULL)
@@ -43,21 +33,12 @@ i32 Pbg3Archive::ParseHeader()
         return false;
     }
 
-#ifdef __PS2__
-    scr_printf("ReadVarInt entries...\n");
-#endif
     this->numOfEntries = this->parser->ReadVarInt();
 #ifdef __PS2__
-    scr_printf("entries=%d\n", this->numOfEntries);
-    scr_printf("ReadVarInt offset...\n");
+    printf("entries=%d\n", this->numOfEntries);
+    printf("ReadVarInt offset...\n");
 #endif
     this->fileTableOffset = this->parser->ReadVarInt();
-#ifdef __PS2__
-    scr_printf("offset=%d\n", this->fileTableOffset);
-#endif
-#ifdef __PS2__
-    scr_printf("SeekToOffset %d...\n", this->fileTableOffset);
-#endif
     if (!this->parser->SeekToOffset(this->fileTableOffset))
     {
         if (this->parser != NULL)
@@ -67,9 +48,6 @@ i32 Pbg3Archive::ParseHeader()
         }
         return false;
     }
-#ifdef __PS2__
-    scr_printf("Allocating entries...\n");
-#endif
     this->entries = new Pbg3Entry[this->numOfEntries];
     if (this->entries == NULL)
     {
@@ -81,9 +59,6 @@ i32 Pbg3Archive::ParseHeader()
         return false;
     }
 
-#ifdef __PS2__
-    scr_printf("Reading entries...\n");
-#endif
     for (u32 idx = 0; idx < this->numOfEntries; idx += 1)
     {
         this->entries[idx].unk2 = this->parser->ReadVarInt();
@@ -103,15 +78,9 @@ i32 Pbg3Archive::ParseHeader()
                 delete[] this->entries;
                 this->entries = NULL;
             }
-#ifdef __PS2__
-            scr_printf("Failed to read entry filename\n");
-#endif
             return false;
         }
     }
-#ifdef __PS2__
-    scr_printf("ParseHeader end\n");
-#endif
     return true;
 }
 
@@ -288,7 +257,13 @@ u8 *Pbg3Archive::ReadDecompressEntry(u32 entryIdx, const char *filename)
         return NULL;
 
     u32 size = this->GetEntrySize(entryIdx);
+#ifdef __PS2__
+    printf("size=%d malloc...\n", size);
+#endif
     u8 *out = (u8 *)malloc(size);
+#ifdef __PS2__
+    printf("out=%p ReadEntryRaw...\n", out);
+#endif
     if (out == NULL)
         return NULL;
 
@@ -296,6 +271,9 @@ u8 *Pbg3Archive::ReadDecompressEntry(u32 entryIdx, const char *filename)
 
     u32 expectedCsum;
     u8 *rawData = this->ReadEntryRaw(&size, &expectedCsum, entryIdx);
+#ifdef __PS2__
+    printf("rawData=%p\n", rawData);
+#endif
 
     if (rawData == NULL)
     {

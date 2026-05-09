@@ -10,14 +10,6 @@
 #include "graphics/WebGL.hpp"
 #ifdef __PS2__
 #include "graphics/GsKitStub.hpp"
-#include "platform/ps2/PS2Platform.hpp"
-extern "C" { 
-    void pglBeginGeometry(); 
-    void pglEndGeometry(); 
-    void pglRenderGeometry(); 
-    void init_scr();
-    int printf(const char*, ...);
-}
 #endif
 #include "i18n.hpp"
 #include "utils.hpp"
@@ -26,6 +18,9 @@ extern "C" {
 #include <SDL_timer.h>
 #include <cstring>
 #include <iostream>
+
+extern "C" void init_scr();
+extern "C" int printf(const char*, ...);
 
 void gamewindowdlog(std::string msg){
     std::cout<<"gamewindow : "<<msg<<std::endl;
@@ -45,9 +40,9 @@ static const struct
     GfxInterface *(*init)();
 } s_RenderBackends[] = {
 #ifdef __PS2__
-    {"Fixed function GL(ES)", false, FixedFunctionGL::SetContextFlags, FixedFunctionGL::Init},
+    {"PS2 gsKit (stub)", false, [](){}, GsKitStub::Init},
 #else
-    //{"GL(ES) 2.0 / WebGL", true, WebGL::SetContextFlags, WebGL::Create},
+    {"GL(ES) 2.0 / WebGL", true, WebGL::SetContextFlags, WebGL::Create},
     {"Fixed function GL(ES)", false, FixedFunctionGL::SetContextFlags, FixedFunctionGL::Init},
 #endif
 };
@@ -96,19 +91,7 @@ RenderResult GameWindow::Render()
             }
 
             //gamewindowdlog("RunDrawChain");
-#ifdef __PS2__
-            printf("pglBeginGeometry...\n");
-            pglBeginGeometry();
-            printf("pglBeginGeometry done\n");
-#endif
             g_Chain.RunDrawChain();
-#ifdef __PS2__
-            printf("pglEndGeometry...\n");
-            pglEndGeometry();
-            printf("pglEndGeometry done\n");
-            pglRenderGeometry();
-            printf("pglRenderGeometry done\n");
-#endif
             //gamewindowdlog("SetCurrentTexture");
             g_AnmManager->SetCurrentTexture(0);
         }
@@ -233,11 +216,7 @@ void GameWindow::Present()
     }
 
     //gamewindowdlog("present SDL_GL_SwapWindow");
-#ifdef __PS2__
-    PS2Platform::SwapBuffers();
-#else
     SDL_GL_SwapWindow(g_GameWindow.window);
-#endif
 
     //gamewindowdlog("present finish");
     return;
@@ -245,27 +224,32 @@ void GameWindow::Present()
 
 void GameWindow::CreateGameWindow()
 {
-// note for developers:
+
+// note for developer:
 // we need to just render graphics on screen framebuffer.
 // touhou 06 resolution is 640x480, but ps2 ntsc resolution available is 640x448. 
-// just crop 16 pixels from top and bottom to make it 640x448, but first we need to move internal fps counter (located at bottom right corner).
+// just crop 16 pixels from top and bottom to make it 640x448, but we need to move game internal fps counter (located at bottom left corner) first.
+// without gsKit (stub) and modified code for ps2, the engine stuck here so we need to tackle it.
+// this was added using gsKit (stub)
 
 #ifdef __PS2__
-    // SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
-    // SDL_Init(SDL_INIT_VIDEO);
-    SDL_Init(0); // no video init, ps2gl will handle display
-    // g_glFuncTable.ResolveFunctions(false); // populate ps2gl function pointers
-    // g_GameWindow.window = (SDL_Window*)1; // dummy non-null
-    // g_GameWindow.lastActiveAppValue = 1;
-    // return;
+    SDL_Init(SDL_INIT_VIDEO );
+#else
+    #ifdef __PS2__
+    SDL_Init(SDL_INIT_VIDEO);
 #else
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK);
+#endif
 #endif
 
 #ifdef __PS2__
     u32 flags = 0; // No OpenGL on PS2
 #else
+    #ifdef __PS2__
+    u32 flags = 0;
+#else
     u32 flags = SDL_WINDOW_OPENGL;
+#endif
 #endif
     i32 height = g_GameWindow.GAME_WINDOW_HEIGHT_REAL;
     i32 width = g_GameWindow.GAME_WINDOW_WIDTH_REAL;
@@ -293,36 +277,21 @@ void GameWindow::CreateGameWindow()
     g_GameWindow.CONFIGURE_VIEW();
     // // SDL_Log("VIEWPORT WIDTH %d",g_GameWindow.VIEWPORT_WIDTH);
     // // SDL_Log("VIEWPORT HEIGHT %d",g_GameWindow.VIEWPORT_HEIGHT);
-#ifdef __PS2__
-    // TODO: force fulscreen on PS2
-    // ignore windowed config, just always fullscreen.
-    // flags |= SDL_WINDOW_FULLSCREEN; 
-#else
     if (g_Supervisor.cfg.windowed == 0)
     {
         flags |= SDL_WINDOW_FULLSCREEN;
     }
-#endif
-
     for (u32 i = 0; i < ARRAY_SIZE(s_RenderBackends); i++)
     {
         s_RenderBackends[i].setContextFlags();
 
 #ifdef __PS2__
-        printf("SDL_Init done\n");
-        printf("SDL_CreateWindow...\n");
+    printf("SDL_Init done\n");
+    printf("SDL_CreateWindow...\n");
 #endif
         g_GameWindow.window = SDL_CreateWindow(TH_WINDOW_TITLE, x, y, width, height, flags);
 #ifdef __PS2__
-        // SDL without video - create dummy window
-        printf("window (before dummy)=%p\n", g_GameWindow.window);
-        // if (g_GameWindow.window == NULL)
-        // {
-            g_GameWindow.window = (SDL_Window *)0x1; // dummy non-null
-        // }
-        printf("window (after dummy)=%p\n", g_GameWindow.window);
-        // Re-setup ps2gl display after SDL overwrites GS config
-        PS2Platform::Init();
+        printf("window=%p\n", g_GameWindow.window);
 #endif
 
         if (g_GameWindow.window == NULL)
@@ -431,8 +400,7 @@ i32 GameWindow::InitD3dRendering(void)
     f32 camera_distance;
 
     printf("gfxBackend init...\n");
-    g_AnmManager->gfxBackend = s_RenderBackends[0].init();
-    // g_AnmManager->gfxBackend = s_RenderBackends[g_GameWindow.renderBackendIndex].init();
+    g_AnmManager->gfxBackend = s_RenderBackends[g_GameWindow.renderBackendIndex].init();
     printf("gfxBackend done\n");
 
     //    using_d3d_hal = 1;
@@ -661,12 +629,6 @@ i32 GameWindow::InitD3dRendering(void)
 void GameWindow::InitD3dDevice(void)
 {
 #ifdef __PS2__
-    // g_glFuncTable.glEnable(GL_TEXTURE_2D);
-    // g_glFuncTable.glEnableClientState(GL_VERTEX_ARRAY);
-    // g_glFuncTable.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    // g_glFuncTable.glEnableClientState(GL_COLOR_ARRAY);
-    // g_glFuncTable.glEnable(GL_BLEND);
-    // g_glFuncTable.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     return;
 #endif
     AnmManager *anm1;

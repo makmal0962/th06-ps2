@@ -7,17 +7,20 @@ extern "C" int SDL_main(int argc, char *argv[]);
 
 int main(int argc, char *argv[]) {
     init_scr();
+    printf("PS2 main() reached\n");
     SifInitRpc(0);
-    FILE *logf = fopen("host:Log.txt", "w");
+    printf("SifInitRpc done\n");
+    // Redirect printf to host file for persistent logging
+    FILE *logf = fopen("host:log.txt", "w");
     if (logf) {
+        // Redirect stdout to log file
         *stdout = *logf;
         setvbuf(stdout, NULL, _IONBF, 0);
+        printf("=== PS2 Log Start ===\n");
     }
-    printf("PS2 main started\n");
-    fflush(stdout);
+    printf("calling SDL_main...\n");
     int ret = SDL_main(argc, argv);
     printf("SDL_main returned %d\n", ret);
-    fflush(stdout);
     return ret;
 }
 #endif

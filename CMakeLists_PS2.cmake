@@ -79,11 +79,13 @@ add_dependencies(th06.elf generate_i18n)
 
 # --- Compile flags ---
 target_compile_options(th06.elf PRIVATE
-    -g
+    -g0
     -mno-gpopt
     -fpermissive
     -Wno-unknown-pragmas
     -Wno-changes-meaning
+    # -DNO_VU0_VECTORS
+    -DNO_ASM
 )
 
 target_compile_definitions(th06.elf PRIVATE
@@ -118,6 +120,10 @@ target_link_libraries(th06.elf PRIVATE
     SDL2_mixer
     SDL2_image
     SDL2_ttf
+    ps2glut
+    ps2gl
+    ps2stuff
+    dma
     gskit
     gskit_toolkit
     dmakit

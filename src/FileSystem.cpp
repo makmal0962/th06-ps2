@@ -22,6 +22,9 @@
 #include <cstdio>
 #endif
 
+#ifdef __PS2__
+extern "C" int printf(const char*, ...);
+#endif
 u32 g_LastFileSize = 0;
 
 FILE *FileSystem::FopenUTF8(const char *filepath, const char *mode)
@@ -133,7 +136,13 @@ u8 *FileSystem::OpenPath(const char *filepath, int isExternalResource)
     if (entryIdx >= 0)
     {
         utils::DebugPrint2("%s Decode ... \n", entryname);
+#ifdef __PS2__
+        printf("ReadDecompress %s...\n", entryname);
+#endif
         data = g_Pbg3Archives[pbg3Idx]->ReadDecompressEntry(entryIdx, entryname);
+#ifdef __PS2__
+        printf("ReadDecompress done, data=%p\n", data);
+#endif
         g_LastFileSize = g_Pbg3Archives[pbg3Idx]->GetEntrySize(entryIdx);
     }
     else

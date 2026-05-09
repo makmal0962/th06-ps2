@@ -20,7 +20,6 @@
 
 #ifdef __PS2__
 extern "C" int printf(const char*, ...);
-extern "C" { void pglBeginGeometry(); void pglEndGeometry(); void pglRenderGeometry(); }
 #endif
 
 static VertexTex1Xyzrhw g_PrimitivesToDrawVertexBuf[4];
@@ -489,15 +488,8 @@ ZunResult AnmManager::LoadTextureAlphaChannel(i32 textureIdx, const char *textur
     SDL_FreeSurface(alphaSurface);
 
     this->SetCurrentTexture(this->textures[textureIdx].handle);
-#ifdef __PS2__
-    pglBeginGeometry();
-#endif
     g_glFuncTable.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureDesc->width, textureDesc->height, 0, GL_RGBA,
                                g_TextureFormatGLTypeMapping[textureFormat], textureDesc->textureData);
-#ifdef __PS2__
-    pglEndGeometry();
-    pglRenderGeometry();
-#endif
 
     return ZUN_SUCCESS;
 }
@@ -551,21 +543,9 @@ ZunResult AnmManager::LoadAnm(i32 anmIdx, const char *path, i32 spriteIdxOffset)
         anm->format = TEX_FMT_A8R8G8B8;
     }
 
-#ifdef __PS2__
-    printf("anmName=%s\n", anmName);
-    fflush(stdout);
-#endif
     if (*anmName == '@')
     {
-#ifdef __PS2__
-        printf("CreateEmptyTexture...\n");
-        fflush(stdout);
-#endif
         this->CreateEmptyTexture(anm->textureIdx, anm->width, anm->height, anm->format);
-#ifdef __PS2__
-        printf("CreateEmptyTexture done\n");
-        fflush(stdout);
-#endif
     }
     else if (this->LoadTexture(anm->textureIdx, anmName, anm->format, anm->colorKey) != ZUN_SUCCESS)
     {

@@ -2,6 +2,50 @@
 
 #include <SDL_video.h>
 
+#ifdef __PS2__
+// forward-declare ps2gl symbols without pulling in conflicting typedefs
+extern "C" {
+    void glAlphaFunc(unsigned int, float);
+    void glBindTexture(unsigned int, unsigned int);
+    void glBlendFunc(unsigned int, unsigned int);
+    void glClear(unsigned int);
+    void glClearColor(float, float, float, float);
+    // void glClearDepth(float);
+    void glColorPointer(int, unsigned int, int, const void*);
+    void glDeleteTextures(int, const unsigned int*);
+    void glDepthFunc(unsigned int);
+    void glDepthMask(unsigned char);
+    void glDisable(unsigned int);
+    void glDisableClientState(unsigned int);
+    void glDrawArrays(unsigned int, int, int);
+    void glEnable(unsigned int);
+    void glEnableClientState(unsigned int);
+    void glFogf(unsigned int, float);
+    void glFogfv(unsigned int, const float*);
+    void glGenTextures(int, unsigned int*);
+    unsigned int glGetError(void);
+    void glGetFloatv(unsigned int, float*);
+    void glGetIntegerv(unsigned int, int*);
+    void glLoadIdentity(void);
+    void glLoadMatrixf(const float*);
+    void glMatrixMode(unsigned int);
+    void glMultMatrixf(const float*);
+    void glPopMatrix(void);
+    void glPushMatrix(void);
+    void glReadPixels(int, int, int, int, unsigned int, unsigned int, void*);
+    void glShadeModel(unsigned int);
+    void glTexCoordPointer(int, unsigned int, int, const void*);
+    void glTexEnvf(unsigned int, unsigned int, float);
+    void glTexEnvi(unsigned int, unsigned int, int);
+    void glTexImage2D(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*);
+    void glTexParameteri(unsigned int, unsigned int, int);
+    void glTexSubImage2D(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*);
+    void glVertexPointer(int, unsigned int, int, const void*);
+    void glViewport(int, int, int, int);
+}
+#endif
+
+
 GLFuncTable g_glFuncTable;
 
 #define TRY_RESOLVE_FUNCTION(func) this->func = (decltype(this->func))SDL_GL_GetProcAddress(#func);
@@ -9,6 +53,76 @@ GLFuncTable g_glFuncTable;
 
 void GLFuncTable::ResolveFunctions(bool glesContext)
 {
+#ifdef __PS2__
+    this->glAlphaFunc          = ::glAlphaFunc;
+    this->glBindTexture        = ::glBindTexture;
+    this->glBlendFunc          = ::glBlendFunc;
+    this->glClear              = ::glClear;
+    this->glClearColor         = ::glClearColor;
+    this->glColorPointer       = ::glColorPointer;
+    this->glDeleteTextures     = ::glDeleteTextures;
+    this->glDepthFunc          = ::glDepthFunc;
+    this->glDepthMask          = ::glDepthMask;
+    this->glDisable            = ::glDisable;
+    this->glDisableClientState = ::glDisableClientState;
+    this->glDrawArrays         = ::glDrawArrays;
+    this->glEnable             = ::glEnable;
+    this->glEnableClientState  = ::glEnableClientState;
+    this->glFogf               = ::glFogf;
+    this->glFogfv              = ::glFogfv;
+    this->glGenTextures        = ::glGenTextures;
+    this->glGetError           = ::glGetError;
+    this->glGetFloatv          = ::glGetFloatv;
+    this->glGetIntegerv        = ::glGetIntegerv;
+    this->glLoadIdentity       = ::glLoadIdentity;
+    this->glLoadMatrixf        = ::glLoadMatrixf;
+    this->glMatrixMode         = ::glMatrixMode;
+    this->glMultMatrixf        = ::glMultMatrixf;
+    this->glPopMatrix          = ::glPopMatrix;
+    this->glPushMatrix         = ::glPushMatrix;
+    this->glReadPixels         = ::glReadPixels;
+    this->glShadeModel         = ::glShadeModel;
+    this->glTexCoordPointer    = ::glTexCoordPointer;
+    this->glTexEnvfv           = [](GLenum t, GLenum p, const GLfloat* v){ ::glTexEnvf(t, p, v[0]); };
+    this->glTexEnvi            = ::glTexEnvi;
+    this->glTexImage2D         = [](GLenum target, GLint level, GLint internalFormat,
+        GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type,
+        const GLvoid* pixels) {
+        if (pixels == nullptr) return; // ps2gl crashes with NULL pixels
+        ::glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
+    };
+    this->glTexParameteri      = ::glTexParameteri;
+    this->glTexSubImage2D      = ::glTexSubImage2D;
+    this->glVertexPointer      = ::glVertexPointer;
+    this->glViewport           = ::glViewport;
+    this->glClearDepth         = ::glClearDepth;
+    this->glDepthRange         = [](GLclampd, GLclampd){};
+    this->glAttachShader             = [](GLuint,GLuint){};
+    this->glBindAttribLocation       = [](GLuint,GLuint,const char*){};
+    this->glCompileShader            = [](GLuint){};
+    this->glCreateProgram            = []()->GLuint{ return 0; };
+    this->glCreateShader             = [](GLenum)->GLuint{ return 0; };
+    this->glDeleteProgram            = [](GLuint){};
+    this->glDeleteShader             = [](GLuint){};
+    this->glDisableVertexAttribArray = [](GLuint){};
+    this->glEnableVertexAttribArray  = [](GLuint){};
+    this->glGetProgramInfoLog        = [](GLuint,GLsizei,GLsizei*,char*){};
+    this->glGetProgramiv             = [](GLuint,GLenum,GLint*){};
+    this->glGetShaderInfoLog         = [](GLuint,GLsizei,GLsizei*,char*){};
+    this->glGetShaderiv              = [](GLuint,GLenum,GLint*){};
+    this->glGetUniformLocation       = [](GLuint,const char*)->GLint{ return -1; };
+    this->glLinkProgram              = [](GLuint){};
+    this->glShaderSource             = [](GLuint,GLsizei,const char* const*,const GLint*){};
+    this->glUniform1f                = [](GLint,GLfloat){};
+    this->glUniform1i                = [](GLint,GLint){};
+    this->glUniform4f                = [](GLint,GLfloat,GLfloat,GLfloat,GLfloat){};
+    this->glUniformMatrix4fv         = [](GLint,GLsizei,GLboolean,const GLfloat*){};
+    this->glUseProgram               = [](GLuint){};
+    this->glVertexAttribPointer      = [](GLuint,GLint,GLenum,GLboolean,GLsizei,const void*){};
+    this->isGlesContext = false;
+    return;
+#endif
+
     TRY_RESOLVE_FUNCTION(glAlphaFunc)
     TRY_RESOLVE_FUNCTION(glBindTexture)
     TRY_RESOLVE_FUNCTION(glBlendFunc)
