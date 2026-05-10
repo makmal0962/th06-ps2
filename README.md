@@ -1,3 +1,6 @@
+Touhou 6 PS2 port using ps2sdk, SDL2 and ps2gl.
+Crossplatform decompilation port for PlayStation 2 homebrew.
+
 [![Discord][discord-badge]][discord] <- click here to join discord server.
 
 [discord]: https://discord.gg/VyGwAjrh9a
