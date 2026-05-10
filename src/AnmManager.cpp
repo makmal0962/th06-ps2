@@ -49,6 +49,9 @@ void AnmManager::CreateTextureObject()
     g_glFuncTable.glBindTexture(GL_TEXTURE_2D, this->currentTextureHandle);
 
     g_glFuncTable.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+#ifdef __PS2__
+    printf("CreateTextureObject: handle=%u\n", this->currentTextureHandle);
+#endif
 }
 
 SDL_Surface *AnmManager::LoadToSurfaceWithFormat(const char *filename, SDL_PixelFormatEnum format, u8 **fileData)
@@ -612,7 +615,10 @@ ZunResult AnmManager::LoadAnm(i32 anmIdx, const char *path, i32 spriteIdxOffset)
     }
 
     this->anmFilesSpriteIndexOffsets[anmIdx] = spriteIdxOffset;
-
+#ifdef __PS2__
+    printf("  numSprites=%d numScripts=%d spriteIdxOffset=%d scripts[0x100]=%p\n", anm->numSprites, anm->numScripts, spriteIdxOffset, spriteIdxOffset==0x100?this->scripts[0x100]:NULL);
+    printf("LoadAnm done: anmIdx=%d textureIdx=%d handle=%u\n", anmIdx, anm->textureIdx, this->textures[anm->textureIdx].handle);
+#endif
     return ZUN_SUCCESS;
 }
 
@@ -650,6 +656,9 @@ void AnmManager::ReleaseAnm(i32 anmIdx)
 
 void AnmManager::ReleaseTexture(i32 textureIdx)
 {
+#ifdef __PS2__
+    if (textureIdx >= 21 && textureIdx <= 26) printf("ReleaseTexture: idx=%d handle=%u\n", textureIdx, this->textures[textureIdx].handle);
+#endif
     if (this->textures[textureIdx].handle != 0)
     {
         if (this->currentTextureHandle == this->textures[textureIdx].handle)
@@ -698,6 +707,16 @@ void AnmManager::LoadSprite(u32 spriteIdx, const AnmLoadedSprite *sprite)
 
 ZunResult AnmManager::SetActiveSprite(AnmVm *vm, u32 sprite_index)
 {
+#ifdef __PS2__
+    static int s_sas = 0;
+    if (s_sas < 3) { 
+        s_sas++; 
+        printf("SAS: idx=%u srcFile=%d handle=%u this=%p tex21=%u\n", \
+            sprite_index, this->sprites[sprite_index].sourceFileIndex, \
+            sprite_index < 264 ? this->textures[this->sprites[sprite_index].sourceFileIndex < 0 ? 0 : this->sprites[sprite_index].sourceFileIndex].handle : 0, \
+            this, this->textures[21].handle);
+    }
+#endif
     if (this->sprites[sprite_index].sourceFileIndex < 0)
     {
         return ZUN_ERROR;
@@ -988,6 +1007,10 @@ ZunResult AnmManager::DrawNoRotation(const AnmVm *vm)
     float fVar2;
     float fVar3;
 
+#ifdef __PS2__
+    static int s_dnr = 0;
+    if (s_dnr < 5) { s_dnr++; printf("DNR: vis=%d f1=%d col=0x%x\n", vm->flags.isVisible, vm->flags.flag1, vm->color); }
+#endif
     if (vm->flags.isVisible == 0)
     {
         return ZUN_ERROR;
@@ -1523,6 +1546,9 @@ i32 AnmManager::ExecuteScript(AnmVm *vm)
                 goto stop;
             }
         yolo:
+#ifdef __PS2__
+            { static int s_yolo=0; if(s_yolo<3){s_yolo++; const AnmRawInstr* scan=(const AnmRawInstr*)vm->beginingOfScript; for(int _i=0;_i<10;_i++){if(scan->opcode==22){u32 lbl=*(const u32*)scan->args; printf("FOUND_IL: pos=%d arg=%u pendingInt=%d\n",_i,lbl,vm->pendingInterrupt);} if(scan->opcode==0||scan->opcode==15)break; scan=(const AnmRawInstr*)((const u8*)scan->args+scan->argsCount);} } }
+#endif
             nextInstr = NULL;
             curInstr = vm->beginingOfScript;
             while ((curInstr->opcode != AnmOpcode_InterruptLabel || vm->pendingInterrupt != AnmI32Arg(0)) &&
@@ -1541,6 +1567,9 @@ i32 AnmManager::ExecuteScript(AnmVm *vm)
             {
                 if (nextInstr == NULL)
                 {
+#ifdef __PS2__
+            { static int s_nf=0; if(s_nf<3){s_nf++; printf("INTR_NOTFOUND: vm=%p opcode=%d bos=%p\n", vm, curInstr->opcode, vm->beginingOfScript);} }
+#endif
                     vm->currentTimeInScript.Decrement(1);
                     goto stop;
                 }
@@ -1550,6 +1579,9 @@ i32 AnmManager::ExecuteScript(AnmVm *vm)
             curInstr = (AnmRawInstr *)(((u8 *)curInstr->args) + curInstr->argsCount);
             vm->currentInstruction = curInstr;
             vm->currentTimeInScript.SetCurrent(vm->currentInstruction->time);
+#ifdef __PS2__
+            { static int s_iv=0; if(s_iv<3){s_iv++; printf("SET_VIS1: vm=%p instr_time=%d\n", vm, vm->currentInstruction ? vm->currentInstruction->time : -1);} }
+#endif
             vm->flags.isVisible = 1;
             continue;
         case AnmOpcode_SetVisibility:

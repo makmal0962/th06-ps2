@@ -192,24 +192,36 @@ struct AnmManager
     void BackendDrawCall()
     {
         if (this->dirtyFlags != 0)
-        {
             this->UpdateDirtyStates();
-        }
-
 #ifdef __PS2__
-        static bool s_printed = false;
-        if (!s_printed) {
-            s_printed = true;
-            // print first vertex position
-            float* vp = (float*)this->attribArrays[0].ptr;
-            if (vp) printf("vtx0: %.2f %.2f %.2f\n", vp[0], vp[1], vp[2]);
-            // print modelview matrix
-            float mv[16], proj[16];
-            g_glFuncTable.glGetFloatv(GL_MODELVIEW_MATRIX, mv);
-            g_glFuncTable.glGetFloatv(GL_PROJECTION_MATRIX, proj);
-            printf("MV[12-15]: %.2f %.2f %.2f %.2f\n", mv[12],mv[13],mv[14],mv[15]);
-            printf("PROJ[10-15]: %.2f %.2f %.2f %.2f\n", proj[10],proj[11],proj[14],proj[15]);
-            if (vp) printf("vtx stride: %zu\n", this->attribArrays[0].stride);
+        ps2_buf ^= 1; // swap double-buffer slot
+        if (this->attribArrays[VERTEX_ARRAY_POSITION].ptr) {
+            u8* s = (u8*)this->attribArrays[VERTEX_ARRAY_POSITION].ptr;
+            size_t st = this->attribArrays[VERTEX_ARRAY_POSITION].stride;
+            for (int i = 0; i < 4; i++) {
+                float* v = (float*)(s + i * st);
+                ps2_pos[ps2_buf][i*3]=v[0]; ps2_pos[ps2_buf][i*3+1]=v[1]; ps2_pos[ps2_buf][i*3+2]=v[2];
+            }
+            g_glFuncTable.glVertexPointer(3, GL_FLOAT, 0, ps2_pos[ps2_buf]);
+        }
+        if (this->attribArrays[VERTEX_ARRAY_TEX_COORD].ptr) {
+            u8* s = (u8*)this->attribArrays[VERTEX_ARRAY_TEX_COORD].ptr;
+            size_t st = this->attribArrays[VERTEX_ARRAY_TEX_COORD].stride;
+            for (int i = 0; i < 4; i++) {
+                float* v = (float*)(s + i * st);
+                ps2_uv[ps2_buf][i*2]=v[0]; ps2_uv[ps2_buf][i*2+1]=v[1];
+            }
+            g_glFuncTable.glTexCoordPointer(2, GL_FLOAT, 0, ps2_uv[ps2_buf]);
+        }
+        if (this->attribArrays[VERTEX_ARRAY_DIFFUSE].ptr) {
+            u8* s = (u8*)this->attribArrays[VERTEX_ARRAY_DIFFUSE].ptr;
+            size_t st = this->attribArrays[VERTEX_ARRAY_DIFFUSE].stride;
+            for (int i = 0; i < 4; i++) {
+                u8* c = s + i * st;
+                ps2_col[ps2_buf][i*4]=c[0]/255.f; ps2_col[ps2_buf][i*4+1]=c[1]/255.f;
+                ps2_col[ps2_buf][i*4+2]=c[2]/255.f; ps2_col[ps2_buf][i*4+3]=c[3]/255.f;
+            }
+            g_glFuncTable.glColorPointer(4, GL_FLOAT, 0, ps2_col[ps2_buf]);
         }
 #endif
         g_glFuncTable.glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -407,6 +419,9 @@ struct AnmManager
         vm->fontHeight = 15;
         vm->fontWidth = 15;
 
+#ifdef __PS2__
+        { static int s_eai=0; if(s_eai<5){s_eai++; printf("EAI: vm=%p idx=%d script=%p\n", vm, anmFileIdx, this->scripts[anmFileIdx]);} }
+#endif
         this->SetAndExecuteScript(vm, this->scripts[anmFileIdx]);
     }
 
@@ -449,6 +464,12 @@ struct AnmManager
     const AnmLoadedSprite *currentSprite;
     //    IDirect3DVertexBuffer8 *vertexBuffer;
     RenderVertexInfo vertexBufferContents[4];
+#ifdef __PS2__
+    float ps2_pos[2][12];
+    float ps2_uv[2][8];
+    float ps2_col[2][16];
+    int ps2_buf;
+#endif
     i32 screenshotTextureId;
     i32 screenshotLeft;
     i32 screenshotTop;

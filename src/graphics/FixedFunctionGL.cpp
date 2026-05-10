@@ -17,6 +17,12 @@ GfxInterface *FixedFunctionGL::Init()
 {
 #ifdef __PS2__
     static FixedFunctionGL s_instance;
+    g_glFuncTable.glEnable(GL_TEXTURE_2D);
+    g_glFuncTable.glEnableClientState(GL_VERTEX_ARRAY);
+    g_glFuncTable.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    g_glFuncTable.glEnableClientState(GL_COLOR_ARRAY);
+    g_glFuncTable.glEnable(GL_BLEND);
+    g_glFuncTable.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     return &s_instance;
 #endif
     g_glFuncTable.glEnable(GL_TEXTURE_2D);

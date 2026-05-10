@@ -29,3 +29,7 @@ src_bak
 
 build_ps2
 library_repo
+*.bak
+*.bak2
+*.bak3
+*.bak*

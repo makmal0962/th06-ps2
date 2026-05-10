@@ -872,6 +872,9 @@ ChainCallbackResult MainMenu::OnUpdate(MainMenu *menu)
         {
             hasLoadedSprite = g_AnmManager->textures[vm->sprite->sourceFileIndex].handle != 0;
         }
+#ifdef __PS2__
+        if (i < 3) { printf("ONU vm[%d] sprite=%p srcFile=%d handle=%u loaded=%d\n", i, vm->sprite, vm->sprite?vm->sprite->sourceFileIndex:-1, (vm->sprite&&vm->sprite->sourceFileIndex>=0)?g_AnmManager->textures[vm->sprite->sourceFileIndex].handle:0, hasLoadedSprite); }
+#endif
         if (hasLoadedSprite)
         {
             g_AnmManager->ExecuteScript(&menu->vm[i]);
@@ -1021,7 +1024,7 @@ ZunResult MainMenu::BeginStartup()
     }
     for (i = 0; i < ARRAY_SIZE_SIGNED(this->vm); i++)
     {
-        this->vm[i].pendingInterrupt = 1;
+        this->vm[i].pendingInterrupt = 2;
         this->vm[i].flags.colorOp = AnmVmColorOp_Add;
         if ((g_Supervisor.cfg.opts & (1 << GCOS_USE_D3D_HW_TEXTURE_BLENDING)) == 0)
         {

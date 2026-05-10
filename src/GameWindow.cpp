@@ -97,9 +97,12 @@ RenderResult GameWindow::Render()
 
             //gamewindowdlog("RunDrawChain");
 #ifdef __PS2__
-            printf("pglBeginGeometry...\n");
-            pglBeginGeometry();
-            printf("pglBeginGeometry done\n");
+    printf("pglBeginGeometry...\n");
+    pglBeginGeometry();
+    printf("pglBeginGeometry done\n");
+    // re-upload matrices setiap frame — ps2gl reset saat BeginGeometry
+    g_AnmManager->SetTransformMatrix(MATRIX_VIEW, g_Supervisor.viewMatrix);
+    g_AnmManager->SetTransformMatrix(MATRIX_PROJECTION, g_Supervisor.projectionMatrix);
 #endif
             g_Chain.RunDrawChain();
 #ifdef __PS2__
@@ -138,7 +141,7 @@ RenderResult GameWindow::Render()
     }
 
     //TODO check windowed
-    if(true)
+    if(false)
     // if (g_Supervisor.cfg.windowed || g_Supervisor.ShouldRunAt60Fps())
     {
         if (this->curFrame != 0)
@@ -314,13 +317,7 @@ void GameWindow::CreateGameWindow()
 #endif
         g_GameWindow.window = SDL_CreateWindow(TH_WINDOW_TITLE, x, y, width, height, flags);
 #ifdef __PS2__
-        // SDL without video - create dummy window
-        printf("window (before dummy)=%p\n", g_GameWindow.window);
-        // if (g_GameWindow.window == NULL)
-        // {
-            g_GameWindow.window = (SDL_Window *)0x1; // dummy non-null
-        // }
-        printf("window (after dummy)=%p\n", g_GameWindow.window);
+        printf("window=%p\n", g_GameWindow.window);
         // Re-setup ps2gl display after SDL overwrites GS config
         PS2Platform::Init();
 #endif
